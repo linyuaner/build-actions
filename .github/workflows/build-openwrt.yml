@@ -60,8 +60,9 @@ jobs:
         echo "REGULAR_UPDATE=${REGULAR_UPDATE}" >> $GITHUB_ENV
         echo "USE_CACHEWRTBUILD=${USE_CACHEWRTBUILD}" >> $GITHUB_ENV
         echo "BY_INFORMATION=${BY_INFORMATION}" >> $GITHUB_ENV
+        echo "AUTOMATIC_AMLOGIC=${AUTOMATIC_AMLOGIC}" >> $GITHUB_ENV
         echo "CangKu=${Apidz##*/}" >> $GITHUB_ENV
-        echo "Modelfile=${{matrix.target}}" >> $GITHUB_ENV
+        echo "Modelfile=${{matrix.target}}" >> $GITHUB_ENV 
 
     - name: 公 告
       run: |
@@ -228,7 +229,7 @@ jobs:
     - name: 整理固件文件夹
       id: organizer
       run: |
-        if [ "${Modelfile}" == "openwrt_amlogic" ]; then
+        if [ "${AUTOMATIC_AMLOGIC}" == "true" ]; then
           source "${PATH1}/common.sh" && Diy_amlogic
         fi
         cd openwrt
@@ -244,7 +245,7 @@ jobs:
         echo "FIRMWARE=$PWD" >> $GITHUB_ENV
         echo "BOT=TRUE" >> $GITHUB_ENV
         echo "::set-output name=status::success"
-
+        
     - name: 上传固件在 github actions
       if: steps.organizer.outputs.status == 'success' && env.UPLOAD_FIRMWARE == 'true'
       uses: actions/upload-artifact@v2
@@ -283,13 +284,13 @@ jobs:
         bodyFile: "update_log.txt"
         artifacts: "${{ env.FIRMWARE }}/*"
         
-    - name: 把定时更新固件发布到云端1
+    - name: 把定时更新固件发布到云端1（请先设置好REPO_TOKEN）
       if: steps.compile.outputs.status == 'success' && env.REGULAR_UPDATE == 'true'
       run: |
        cd openwrt
        source "${PATH1}/upgrade.sh" && Diy_Part3
         
-    - name: 把定时更新固件发布到云端2
+    - name: 把定时更新固件发布到云端2（请先设置好REPO_TOKEN）
       if: steps.compile.outputs.status == 'success' && env.REGULAR_UPDATE == 'true'
       uses: svenstaro/upload-release-action@v2
       with:
@@ -299,14 +300,14 @@ jobs:
         overwrite: true
         file_glob: true
         
-    - name: 把定时更新固件发布到云端3
+    - name: 把定时更新固件发布到云端3（请先设置好REPO_TOKEN）
       if: steps.compile.outputs.status == 'success' && env.REGULAR_UPDATE == 'true'
       run: |
         mkdir -p Github_Tags
         cd Github_Tags
         wget -q --no-cookie --no-check-certificate https://api.github.com/repos/${{github.repository}}/releases/tags/AutoUpdate -O Github_Tags
         
-    - name: 把定时更新固件发布到云端4
+    - name: 把定时更新固件发布到云端4（请先设置好REPO_TOKEN）
       if: steps.compile.outputs.status == 'success' && env.REGULAR_UPDATE == 'true'
       uses: svenstaro/upload-release-action@v2
       with:
